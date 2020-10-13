@@ -1,6 +1,6 @@
 
 ##### AUTHORS:     Rachel Porter
-##### DATE:        1 October 2019
+##### DATE:        13 October 2020
 ##### PURPOSE:     Intro to Text Analysis - Day 1
 ##### COURSE:      Odum -- Short Course -- Text Analysis
 
