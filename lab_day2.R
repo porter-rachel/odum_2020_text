@@ -150,8 +150,11 @@ summary(keyATM_docs)
 topfeatures(iss_dfm, n = 100)
 
 ## specify keywords for topic modeling 
-keywords <- list(Healthcare             = c("abort", "contracept", "healthcar", "afford", "access"),
-                 Harassment             = c("violenc", "sexual", "abus"))
+keywords <- list(Healthcare             = c("healthcar", "afford", "health"),
+                 Parenthood             = c("plan", "parenthood", "access"),
+                 Birth_Control          = c("contracept", "birth", "control", "pill"),
+                 Abortion               = c("abort", "safe", "legal", "pregnanc", "matern"),
+                 Cancer                 = c("breast", "cancer", "screen", "access"))
 
 ## visualize keyword occurance across documents; determine strength of keywords 
 visualize_keywords(docs = keyATM_docs, keywords = keywords, label_size = 5)
@@ -162,18 +165,22 @@ covariate_data$ss_party <- as.factor(covariate_data$ss_party)
 
 ## specifying topic model 
 out <- keyATM(docs              = keyATM_docs,
-              no_keyword_topics = 3,
+              no_keyword_topics = 0,
               keywords          = keywords,
               model             = "covariates",
               model_settings    = list(covariates_data = covariate_data,
                                        covariates_formula = ~ gender + openseat + ss_party),
-              options           = list(seed = 250, iterations = 5000))
+              options           = list(seed = 250, iterations = 10000))
 
 ## assessing topic content 
 top_words(out, n=15)
 
+## assessing model fit
+plot_modelfit(out)
+plot_pi(out)
+
 ## examining our hypothesis 
 strata_topic <- by_strata_DocTopic(out, by_var = "gender",
                                    labels = c("Male", "Female"))
-fig_doctopic <- plot(strata_topic, var_name = "Gender", show_topic = c(1,2))
+fig_doctopic <- plot(strata_topic, var_name = "Gender", show_topic = c(1:5))
 fig_doctopic
