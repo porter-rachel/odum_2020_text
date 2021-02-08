@@ -100,7 +100,7 @@ master[1,2]
 ## These are ways to manipulate letter or number patterns within 
 ## text in R. For instance take the line of text below 
 
-example <- "The quick \nbrown fox jumped \rover the lazy, foxy dog"
+example <- "The quick \nbr\nown fox jumped \rover the lazy, foxy dog"
 
 ## Let's say we wanted to get rid of any instance of an animal
 ## being mentioned. To do this we can specify that the patterns 
