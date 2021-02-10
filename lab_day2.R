@@ -18,10 +18,10 @@ rm(list=ls())
 ################# PREPROCESSING STEP  ###############
 
 ## load in data on campaign positions 
-data <- read_csv("~/Dropbox/Text_Class/odum_text_2020/postions_data.csv")
+load("~/Dropbox/Text_Class/odum_text_2020/positions_data.RData")
 
 ## remove any tags, unwanted text for analysis
-data$trimmed <- gsub("\n", "", data$trimmed)
+data$trimmed <- gsub("[\n]", "", data$trimmed)
 data$trimmed <- gsub("d5", "", data$trimmed)
 data$trimmed <- gsub("d0", "", data$trimmed)
 data$trimmed <- gsub(" *\\b[[:alpha:]]{1,2}\\b *", " ", data$trimmed)
@@ -37,8 +37,10 @@ data <- subset(data, !is.na(data$trimmed))
 issues <- corpus(data, text_field = "trimmed")
 
 ## finish preprocessing steps 
+eng.stopwords <- stopwords('english')
+eng.stopwords <- c("congress", eng.stopwords)
 iss_dfm <- dfm(issues, stem = T,
-               remove = stopwords('english'), remove_punct = T)
+               remove = eng.stopwords, remove_punct = T)
 
 ## optional: examine top features
 topfeatures(iss_dfm, 100)
@@ -76,9 +78,11 @@ model_search <- searchK(iss_stm$documents, iss_stm$vocab, K = c(8:12),
                         data = iss_stm$meta, seed = 374075)
 plot(model_search)
 # Held-out likelihood — the probability of held-out documents given a trained model; goal close to 0
-# Residuals           — If the model is correctly specified (if it correctly specified the multinomial 
+#                       essentially --- how good is the model at predicting held out words?
+# Residuals           — If the model is correctly specified. If it correctly specified the multinomial 
 #                       likelihood the dispersion of residuals sigma2 should be 1; If > 1, too few topics, 
 #                       cannot account well for topic over-dispersion
+#                       essentially --- is there too much variability in topics?
 # Lower-bound         — approximation to the lower bound on the marginal likelihood. You can think of 
 #                       it as the model's internal measure of fit. Goal is to MAXIMIZE
 # Semantic Coherence  — Semantic coherence is maximized when the most probable words in a given topic 
@@ -95,6 +99,8 @@ initial_model <- stm(documents = iss_stm$documents, vocab = iss_stm$vocab,
 # results across multiple runs; setting the seed becomes unnecesscary.
 
 labelTopics(initial_model, n = 10)
+
+theta <- data.frame(initial_model$theta)
 
 # Highest Prob.***    — Words with the highest probability of ocurring in a given topic 
 # FREX words          — Highest probability words re-weighted by how exclusive they are to a given topic 
@@ -119,8 +125,8 @@ semco <- data.frame(labels, semcoh, exclusivity)
 ggplot(semco, aes(x = semcoh, y = exclusivity, label=labels)) +
   geom_point() +
   geom_text(aes(label=labels),hjust=-.05, vjust=.2) +
-  ylim(8,10) +
-  xlim(-70,-20) +
+  ylim(5,10) +
+  xlim(-70,-15) +
   theme_bw() +
   xlab("Semantic Coherence") + ylab("Topic-Word Exclusivity") +
   theme(text = element_text(size=18))
@@ -165,12 +171,12 @@ covariate_data$ss_party <- as.factor(covariate_data$ss_party)
 
 ## specifying topic model 
 out <- keyATM(docs              = keyATM_docs,
-              no_keyword_topics = 0,
+              no_keyword_topics = 1,
               keywords          = keywords,
               model             = "covariates",
               model_settings    = list(covariates_data = covariate_data,
                                        covariates_formula = ~ gender + openseat + ss_party),
-              options           = list(seed = 250, iterations = 10000))
+              options           = list(seed = 250, iterations = 1000))
 
 ## assessing topic content 
 top_words(out, n=15)
